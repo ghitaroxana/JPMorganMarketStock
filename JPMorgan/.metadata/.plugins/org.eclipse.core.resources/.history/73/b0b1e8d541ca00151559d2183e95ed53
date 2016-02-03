@@ -1,0 +1,194 @@
+import static org.junit.Assert.*;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+
+
+public class TestStockMarket {
+	Stock s1,s2,s3,s4,s5;
+	@Before
+	public void init() {
+		s1=new Stock("TEA",Type.COMMON,0,null,100);
+		s2=new Stock("POP",Type.COMMON,8,null,100);
+		s3=new Stock("ALE",Type.COMMON,23,null,60);
+		s4=new Stock("GIN",Type.PREFERRED,8,0.2,100);
+		s5=new Stock("JOE",Type.COMMON,13,0.0,250);
+	}
+
+	@Test
+	public void calculateDividendYieldWithPositivePriceCommonType() throws Exception{
+
+
+		double dY=0.0;
+
+		//Last dividend=0
+		dY=s1.dividendYield(34.0);
+		assertEquals(0.0,dY,0);
+
+		//Last dividend>0
+		dY=s2.dividendYield(56.7);
+		assertEquals(0.141,dY,0.001);
+
+		//Par value<60
+		dY=s3.dividendYield(0.69);
+		assertEquals(33.333,dY,0.001);
+	}
+
+	@Test
+	public void calculateDividendYieldPositivePricePreferredType() throws Exception{
+
+		double dY=0.0;
+
+		//fix dividend not 0
+		dY=s4.dividendYield(18.2);
+		assertEquals(1.098,dY,0.001);
+	}
+
+	@Test
+	public void calculateDividendYieldZeroFixDividendPreferredType() throws Exception{
+		s4=new Stock("GIN",Type.PREFERRED,8,0.0,100);
+		double dY=18.2;
+
+		dY=s4.dividendYield(18.2);
+		assertEquals(0.0,dY,0.0);
+	}
+
+	@Test(expected = Exception.class)
+	public void calculateDividendYieldZeroPricePreferredType() throws Exception{
+		double dY=0.0;
+
+		dY=s4.dividendYield(0.0);
+	}
+
+	@Test(expected = Exception.class)
+	public void calculateDividendYieldNullPricePreferredType() throws Exception{
+		double dY=0.0;
+
+		dY=s4.dividendYield(null);
+	}
+
+	@Test(expected = Exception.class)
+	public void calculateDividendYieldGraterThanZeroPrice() throws Exception{
+		double dY=0.0;
+
+		dY=s5.dividendYield(-10.0);
+	}
+
+	@Test(expected = Exception.class)
+	public void calculatePERatioNotNullPriceDividentZero() throws Exception{
+
+		double dY=0.0;
+
+		dY=s1.PERatio(34.0);
+	}
+
+	@Test
+	public void calculatePERatioNotNullPriceDividentNotZero() throws Exception{
+
+		double dY=0.0;
+
+		dY=s2.PERatio(56.7);
+		assertEquals(401.861,dY,0.001);
+	}
+
+	@Test
+	public void calculatePERatioNotNullPriceDividentNull() throws Exception{
+
+		double dY=0.0;
+
+		dY=s2.PERatio(56.7);
+		assertEquals(401.861,dY,0.001);
+	}
+
+	@Test(expected = Exception.class)
+	public void calculatePERatioNull() throws Exception{
+
+		double dY=0.0;
+
+		dY=s2.PERatio(null);
+	}
+
+	@Test
+	public void calculateVolumeWeightedStockPrice(){
+		s1.trades=null;
+		s1.addTrade(new Trade(Instant.now().minusSeconds(30), 25, Indicator.BUY, 34.0));
+		s1.addTrade(new Trade(Instant.now().minusSeconds(60), -5, Indicator.SELL, 10.0));
+		assertEquals(40.0,s1.volumeWeightedStockPrice(),0.0);		
+
+	}
+
+	@Test
+	public void calculateVolumeWeightedStockPriceTradesOlderThan15Min(){
+		s1.trades=null;
+		s1.addTrade(new Trade(Instant.now().minusSeconds(10000), -5, Indicator.SELL, 10.0));
+		s1.addTrade(new Trade(Instant.now().minusSeconds(10001), 50, Indicator.BUY, 10.0));
+		assertEquals(0.0,s1.volumeWeightedStockPrice(),0.0);
+	}
+
+	@Test
+	public void calculateVolumeWeightedStockPriceTrades(){
+		s1.trades=null;
+		s1.addTrade(new Trade(Instant.now().minusSeconds(30), 25, Indicator.BUY, 34.0));
+		s1.addTrade(new Trade(Instant.now().minusSeconds(60), -5, Indicator.SELL, 10.0));
+		s1.addTrade(new Trade(Instant.now().minusSeconds(10000), -5, Indicator.SELL, 10.0));
+		s1.addTrade(new Trade(Instant.now().minusSeconds(10001), 50, Indicator.BUY, 10.0));
+
+		assertEquals(40.0,s1.volumeWeightedStockPrice(),0.0);		
+
+	}
+
+	@Test
+	public void calculateGBCEPrices(){
+
+		List<Double> prices=new ArrayList<Double>();
+
+		prices.add(34.0);
+		prices.add(56.7);
+		prices.add(0.69);
+		prices.add(18.2);
+		prices.add(10.0);
+
+		assertEquals(11.934,StockMarket.GBCEPrices(prices),0.001);
+	}
+
+	@Test
+	public void calculateGBCEPricesNegativePrice(){
+
+		List<Double> prices=new ArrayList<Double>();
+
+		prices.add(34.0);
+		prices.add(56.7);
+		prices.add(0.69);
+		prices.add(18.2);
+		prices.add(-10.0);
+
+		assertEquals(-1,StockMarket.GBCEPrices(prices),0.0);
+	}
+
+	@Test
+	public void calculateGBCE(){
+
+		List<Stock> stocks=new ArrayList<Stock>();
+		stocks.add(s1);
+		stocks.add(s2);
+		stocks.add(s3);
+		
+		assertEquals(11.934,StockMarket.GBCE(stocks),0.001);
+	}
+
+	@Test
+	public void calculateGBCENegativePrice(){
+
+		List<Stock> stocks=new ArrayList<Stock>();
+		s2.addTrade(new Trade(Instant.now(),12, Indicator.SELL,-10));
+		stocks.add(s1);
+		stocks.add(s2);
+		stocks.add(s3);
+
+		assertEquals(-1,StockMarket.GBCE(stocks),0.0);
+	}
+}

@@ -1,0 +1,118 @@
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class StockMarket {
+
+
+	public static double GBCE(List<Double> prices){
+		double buff=1f;
+		for (Double f:prices)
+			buff*=f;
+
+		return nRoot(buff,prices.size(),0);
+	}
+	
+	public static double nRoot( double A,int n, double p) {
+		if(A < 0) {
+			System.err.println("A < 0");// we handle only real positive numbers
+			return -1.0f;
+		} else if(A == 0) {
+			return 0;
+		}
+		double x_prev = A;
+		double x = A / n;  // starting "guessed" value...
+		while(Math.abs(x - x_prev) > p) {
+			x_prev = x;
+			x = ((n - 1.0) * x + A / Math.pow(x, n - 1.0)) / n;
+		}
+		return x;
+	}
+	
+	public static void main(String[] args) {
+List<Double> prices=new ArrayList<Double>();
+
+		Stock s1=new Stock("TEA",Type.COMMON,0,null,100);
+		prices.add(34d);
+		Stock s2=new Stock("POP",Type.COMMON,8,null,100);
+		prices.add(56.7);
+		Stock s3=new Stock("ALE",Type.COMMON,23,null,60);
+		prices.add(0.69);
+		Stock s4=new Stock("GIN",Type.PREFERRED,8,0.2f,100);
+		prices.add(18.2);
+		Stock s5=new Stock("JOE",Type.COMMON,13,null,250);
+		prices.add(10d);
+
+		//DIVIDED YIELD
+		try {
+
+			System.out.println("Divided Yield for s1 with price = 34 is "+s1.dividendYield(34f));
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		try{
+			System.out.println("Divided Yield for s2 with price = 56.7 is "+s2.dividendYield(56.7f));
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		try{
+			System.out.println("Divided Yield for s3 with price = 0.69 is "+s3.dividendYield(0.9f));
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		try{
+			System.out.println("Divided Yield for s4 with price = 18.2 is "+s4.dividendYield(18.2f));
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		try{
+			System.out.println("Divided Yield for s5 with price = -10 is "+s5.dividendYield(-10f));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+
+		//P/E RATIO
+		
+		try {
+
+			System.out.println("P/E Ratio for s1 with price = 34 is "+s1.PERatio(34f));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try{	
+			System.out.println("P/E Ratio for s2 with price = 56.7 is "+s2.PERatio(56.7f));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try{	
+			System.out.println("P/E Ratio for s3 with price = 0.69 is "+s3.PERatio(0.9f));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try{	
+			System.out.println("P/E Ratio for s4 with price = 18.2 is "+s4.PERatio(18.2f));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try{
+			System.out.println("P/E Ratio for s5 with price = -10 is "+s5.PERatio(-10f));} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		s1.addTrade(new Trade(Instant.now().minusSeconds(30), 25, Indicator.BUY, 34f));
+		s1.addTrade(new Trade(Instant.now().minusSeconds(60), -5, Indicator.SELL, 10f));
+		s1.addTrade(new Trade(Instant.now().minusSeconds(10000), -5, Indicator.SELL, 10f));
+		s1.addTrade(new Trade(Instant.now().minusSeconds(10001), 50, Indicator.BUY, 10f));
+		System.out.println("VolumeWeightedStockPrice is: "+s1.volumeWeightedStockPrice());
+		
+		
+		System.out.println("GBCE is: " +GBCE(prices));
+
+	}
+
+}

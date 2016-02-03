@@ -1,0 +1,12 @@
+import java.security.Timestamp;
+
+
+public class Trade {
+
+	public Timestamp time;
+	//for BUY indicator the quantity will be positive and for SELL indicator the quantity will be negative
+	public int quantity;
+	public Indicator indicator;
+	Float price;
+
+}

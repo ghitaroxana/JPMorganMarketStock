@@ -1,0 +1,11 @@
+import java.security.Timestamp;
+
+
+public class Trade {
+
+	public Timestamp time;
+	public int quantity;
+	public Indicator indicator;
+	Float price;
+
+}

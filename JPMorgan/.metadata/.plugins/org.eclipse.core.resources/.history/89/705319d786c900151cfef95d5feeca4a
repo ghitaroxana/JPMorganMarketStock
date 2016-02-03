@@ -1,0 +1,121 @@
+import java.awt.List;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
+
+
+public class Stock {
+	String symbol;
+	Type type;
+	Integer lastDivident;
+	Float fixedDivident;
+	Integer parValue;
+	ArrayList<Trade> trades;
+
+	public Stock(String symbol, Type type, Integer lastDivident,
+			Float fixedDivident, Integer parValue) {
+		super();
+		this.symbol = symbol;
+		this.type = type;
+		this.lastDivident = lastDivident;
+		this.fixedDivident = fixedDivident;
+		this.parValue = parValue;
+	}
+
+	public ArrayList<Trade> getTrades() {
+		return trades;
+	}
+
+	public void addTrade(Trade trade){
+		if (this.trades==null)
+			this.trades = new ArrayList<Trade>();
+		this.trades.add(trade);
+	}
+	public String getSymbol() {
+		return symbol;
+	}
+	public void setSymbol(String symbol) {
+		this.symbol = symbol;
+	}
+	public Type getType() {
+		return type;
+	}
+	public void setType(Type type) {
+		this.type = type;
+	}
+	public Integer getLastDivident() {
+		return lastDivident;
+	}
+	public void setLastDivident(Integer lastDivident) {
+		this.lastDivident = lastDivident;
+	}
+	public float getFixedDivident() {
+		return fixedDivident;
+	}
+	public void setFixedDivident(Float fixedDivident) {
+		this.fixedDivident = fixedDivident;
+	}
+	public Integer getParValue() {
+		return parValue;
+	}
+	public void setParValue(Integer parValue) {
+		this.parValue = parValue;
+	}
+
+	public Float dividendYield(Float price) throws Exception{
+		if (price>0)
+		{
+			if (this.type==Type.COMMON)
+				return this.lastDivident/price;
+			else if (this.type==Type.PREFERRED)
+				return this.fixedDivident*this.parValue/price;
+
+		}
+		else throw new Exception("Price must be greater than 0");
+		return null;
+	}
+
+	public Float PERatio(Float price) throws Exception{
+		//the formula for P/E Ratio is Price/Dividend, I`m not sure about which 
+		// dividend is that, so I considered that dividend=dividendYield
+		try {
+			if (price>0)
+			{
+				Float divY = this.dividendYield(price);
+				if (divY>0 && divY!=null)
+					return price/divY;
+				else throw new Exception("Dividend Yield is null or less than 0, P/E Ration cannot be calculated");
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new Exception("Price must be greater than 0");
+		}
+		return null;
+	}	
+	public Float volumeWeightedStockPrice(){
+
+		Float buff= 0.0f;
+		int totalQ=0;
+		ArrayList<Trade> lastTrades = this.getLastTrades(15);
+
+		for (Trade t:lastTrades)
+		{
+			buff+=(t.getPrice()*t.getQuantity());
+			totalQ+=t.getQuantity();
+		}
+		return buff/totalQ;
+	}
+	protected ArrayList<Trade> getLastTrades(int minutes){
+
+		ArrayList<Trade> lastTrades=new ArrayList<Trade>();
+		Instant now = Instant.now();
+		for(Trade t:this.trades)
+			if (t.getTime().plusSeconds(minutes*60).isAfter(now))		
+				lastTrades.add(t);
+
+		return lastTrades;
+	}
+}
